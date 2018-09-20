@@ -1,8 +1,6 @@
 package com.example.liquanfei.xposedtest;
 
 import android.app.Activity;
-import android.os.Message;
-import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,16 +21,16 @@ public class MainXP implements IXposedHookLoadPackage {
 
         //替换追书神器应用中的所有View.setSystemUiVisibility,替换为一个空方法
         if (lpparam.packageName.equals("com.ushaqi.zhuishushenqi")) {
-            XposedHelpers.findAndHookMethod("android.view.View", lpparam.classLoader, "setSystemUiVisibility", new Object[]{Integer.TYPE, new XC_MethodReplacement() {
+            XposedHelpers.findAndHookMethod("android.view.View", lpparam.classLoader, "setSystemUiVisibility", Integer.TYPE, new XC_MethodReplacement() {
                 protected Object replaceHookedMethod(MethodHookParam var1) throws Throwable {
                     return null;
                 }
-            }});
+            });
         }
 
         //替换极品钢琴2中JustPiano2类中的onPause方法
         if (lpparam.packageName.equals("ly.pp.justpiano2")) {
-            XposedHelpers.findAndHookMethod(lpparam.classLoader.loadClass("ly.pp.justpiano2.JustPiano2"), "onPause", new Object[]{new XC_MethodReplacement() {
+            XposedHelpers.findAndHookMethod(lpparam.classLoader.loadClass("ly.pp.justpiano2.JustPiano2"), "onPause", new XC_MethodReplacement() {
                 protected Object replaceHookedMethod(MethodHookParam var1) throws Throwable {
                     Method var2 = Activity.class.getDeclaredMethod("onPause");
                     var2.setAccessible(true);
@@ -40,19 +38,6 @@ public class MainXP implements IXposedHookLoadPackage {
                     var3.setAccessible(true);
                     var3.set(var1.thisObject, true);
                     return null;
-                }
-            }});
-        }
-
-        //向今日头条下所有的Handler.sendMessageAtTime调用hook一个方法，即在sendMessage之后打一个log
-        if (lpparam.packageName.equals("com.ss.android.article.news")) {
-            XposedHelpers.findAndHookMethod("android.os.Handler", lpparam.classLoader, "sendMessageAtTime", Message.class, long.class, new XC_MethodHook() {
-
-                @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                    super.afterHookedMethod(param);
-
-                    Log.e("xposedTest", "sendMessage");
                 }
             });
         }
