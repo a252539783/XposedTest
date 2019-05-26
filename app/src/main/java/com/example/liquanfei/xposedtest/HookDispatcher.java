@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
 
+import com.example.liquanfei.xposedtest.test.QQFeiche;
 import com.example.liquanfei.xposedtest.test.TTMain;
 import com.example.liquanfei.xposedtest.test.Test;
 import com.example.liquanfei.xposedtest.test.XiguaNpth;
@@ -31,9 +32,10 @@ public class HookDispatcher implements IHookerDispatcher {
     @Override
     public void dispatch(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         Stable.test(lpparam);
-        TTMain.test(lpparam);
+//        TTMain.test(lpparam);
 //        Test.test(lpparam);
-        XiguaNpth.test(lpparam);
-//        ThreadHook.hook(lpparam);
+//        XiguaNpth.test(lpparam);
+        ThreadHook.hook(lpparam);
+        QQFeiche.test(lpparam);
     }
 }
