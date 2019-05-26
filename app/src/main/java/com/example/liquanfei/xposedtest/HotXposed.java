@@ -26,11 +26,13 @@ public class HotXposed {
         filterNotify(lpparam);
 
         PathClassLoader classLoader =
-                new PathClassLoader(apkFile.getAbsolutePath(), lpparam.classLoader);
+                new PathClassLoader(apkFile.getAbsolutePath(), getLibFile(apkFile).getAbsolutePath(), lpparam.classLoader);
         try {
             Field parentField = ClassLoader.class.getDeclaredField("parent");
             parentField.setAccessible(true);
+//            parentField.set(lpparam.getClass().getClassLoader(), parentField.get(lpparam.classLoader));
             parentField.set(lpparam.classLoader, lpparam.getClass().getClassLoader());
+//            parentField.set(classLoader, lpparam.classLoader);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,5 +72,21 @@ public class HotXposed {
             apkFile = new File(filePath);
         }
         return apkFile;
+    }
+
+    private static File getLibFile(File apkFile) {
+        String appFile = apkFile.getParent();
+
+        File libFile = new File(appFile + "/lib/arm/");
+        if (libFile.exists()) {
+            return libFile;
+        }
+
+        libFile = new File(appFile + "/lib/arm64/");
+        if (libFile.exists()) {
+            return libFile;
+        }
+
+        return libFile;
     }
 }
