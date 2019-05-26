@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.InputEvent;
 import android.view.InputQueue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,7 +43,9 @@ public class QQFeiche {
     private static Handler sMainHandler = null;
     private static InputQueue sInputQueue = null;
     private static Method sSendMotionEvent = null;
+    private static Method sSendInputEvent = null;
     private static long sInputQueuePtr = -1;
+    private static Object sViewRoot = null;
 
     public static void test(final XC_LoadPackage.LoadPackageParam lpparam) {
 
@@ -56,6 +59,7 @@ public class QQFeiche {
                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                 super.afterHookedMethod(param);
                                 if (sInputQueue == null) {
+                                    sViewRoot = param.thisObject;
                                     Field f = viewRootClass.getDeclaredField("mInputQueue");
                                     f.setAccessible(true);
                                     sInputQueue = (InputQueue) f.get(param.thisObject);
@@ -65,6 +69,10 @@ public class QQFeiche {
                                         sInputQueuePtr = (long) m.invoke(sInputQueue);
                                         sSendMotionEvent = InputQueue.class.getDeclaredMethod("nativeSendMotionEvent", long.class, MotionEvent.class);
                                         sSendMotionEvent.setAccessible(true);
+                                        sSendInputEvent = InputQueue.class.getDeclaredMethod("sendInputEvent",
+                                                InputEvent.class, Object.class,
+                                            boolean.class, lpparam.classLoader.loadClass("android.view.InputQueue$FinishedInputEventCallback"));
+                                        sSendInputEvent.setAccessible(true);
                                         Log.e("xx", "find InputQueue");
                                     }
                                 }
@@ -106,12 +114,14 @@ public class QQFeiche {
 //            } catch (ClassNotFoundException e) {
 //                Log.e("xx", e.toString());
 //            }
-            XposedHelpers.findAndHookMethod(InputQueue.class, "sendInputEvent", long.class, MotionEvent.class,  new XC_MethodReplacement() {
-                @Override
-                protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                    return true;
-                }
-            });
+//            XposedHelpers.findAndHookMethod(InputQueue.class, "sendInputEvent", InputEvent.class, Object.class,
+//                    boolean.class, "android.view.InputQueue$FinishedInputEventCallback" ,new XC_MethodReplacement() {
+//                @Override
+//                protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
+//                    return true;
+//                }
+//            });
+//            Log.e("xx", "do inputEvent");
 //            final Field var3 = Activity.class.getDeclaredField("mCalled");
 //            var3.setAccessible(true);
 //            final Method onPause = Activity.class.getDeclaredMethod("onPause"),
@@ -291,7 +301,8 @@ public class QQFeiche {
     private static void injectEvent(MotionEvent event) {
         if (sInputQueue != null) {
             try {
-                sSendMotionEvent.invoke(sInputQueue, sInputQueuePtr, event);
+//                sSendMotionEvent.invoke(sInputQueue, sInputQueuePtr, event);
+                sSendInputEvent.invoke(sInputQueue, event, null, false, sViewRoot);
             } catch (Throwable e) {
                 Log.e("xx",  e.toString());
             }
